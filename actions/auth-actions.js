@@ -1,7 +1,6 @@
-// Suggested code may be subject to a license. Learn more: ~LicenseLog:2182004419.
-// Suggested code may be subject to a license. Learn more: ~LicenseLog:1946985642.
 'use server';
 
+import { createAuthSession } from "@/lib/auth";
 import { hashUserPassword } from "@/lib/hash";
 import { createUser } from "@/lib/user";
 import { redirect } from "next/navigation";
@@ -48,10 +47,14 @@ export async function signup(prevState, formData){
 
     // hasing the password
     const newPassword = hashUserPassword(password);
-
+    const newEmail = email.toLowerCase();
     // creating a new user
     try{
-        createUser(email, newPassword);
+        const userId = createUser(newEmail, newPassword);
+        // creating a session 
+        await createAuthSession(userId);
+        // redirect to the page after succesfully creation of user
+        redirect('/training');
     }catch(error){
         if(error.code ==='SQLITE_CONSTRAINT_UNIQUE'){
             return {
@@ -62,7 +65,4 @@ export async function signup(prevState, formData){
         }
         throw error;
     }
-
-    // redirect to the page after succesfully creation of user
-    redirect('/training');
 }
